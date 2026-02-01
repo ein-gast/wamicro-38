@@ -3,9 +3,11 @@
 #ifdef WITH_LIGHT
 #include "app_light.h"
 #endif
-// #include "app_gfx.h"
+// #include "app_gfx.h
 #include "app_pixdata.h"
 #include "app_statelogic.h"
+#define _COMPILE_GLOBALS_
+#include "app_globals.h"
 #define _COMPILE_COLLISION_
 #include "app_colision.h"
 #define _COMPILE_WALLS_
@@ -230,7 +232,7 @@ void R(byte *input) {
     }
   }
 
-  // walls + clear
+  // walls
   int sum = 0;
   const walSect *ws;
   ws = walFirst();

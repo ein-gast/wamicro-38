@@ -1,6 +1,5 @@
 #include "app_defs.h"
-
-pal256 globalPal;
+#include "app_globals.h"
 
 #define unpakPal(raster)                                                       \
   {                                                                            \

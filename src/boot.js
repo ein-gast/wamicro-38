@@ -1,21 +1,24 @@
 // Math.ceil(1 + BS / 16 / 1024) = 7
 // U = Uint8Array;
 //console.log(inst.exports)
-let _C, _T, S = 150, BS = S * S * 4, _E = inst.exports,
-    image = (_T = (_C = document.getElementById(`c`, _E.memory.grow(7 /*Math.ceil(1 + BS / 16 / 1024)*/)))
+let _D = document, 
+    _C = _D.write(`<canvas id=c></canvas>`), 
+    _T, S = 150, BS = S * S * 4, 
+    _E = inst.exports,
+    image = (_T = (_C = _D.getElementById(`c`, _E.memory.grow(7 /*Math.ceil(1 + BS / 16 / 1024)*/)))
         .getContext(`2d`))
         .getImageData(0, 0, S, _C.width = _C.height = S),
     pixPtr = _E.__heap_base.value, // __heap_base .. __heap_end
     pixBuf = new U(mem = _E.memory.buffer).subarray(pixPtr, pixPtr + BS),
     WH90 = `min(90vw,90vh)`;
 _C.style = `width:${WH90};height:${WH90};image-rendering:pixelated`
-// ---
 
+// ---
 _E.I()
 // обработка физики
 setInterval((_) => _E.P(), 16 /*1000/60=16*/);
 // ввод
-_C.onmousedown = document.onkeydown = (_) => _E.K()
+_C.onmousedown = _D.onkeydown = (_) => _E.K()
 // рендер
 let processFrame = (_) => {
     _E.R(pixPtr)

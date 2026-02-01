@@ -1,26 +1,6 @@
 #include "app_colision.h"
 #include "app_defs.h"
-#include <stdbool.h>
-
-struct {
-  // viewport size and pos
-  int vpY /*, vpS*/;
-  // player
-  int plY, plX, plXDir;
-  // powerups
-  //int ammo, shield;
-
-  int timer;
-  // score
-  int score;
-  
-  // game over flag
-  bool gameover;
-
-  // scene objects
-  objState obj[OBJCNT];
-  objState projctl[PROJCNT];
-} state;
+#include "app_globals.h"
 
 void do_gameover() {
   state.timer = 60 * 2;

@@ -89,3 +89,23 @@ typedef struct {
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
+
+// состояние игры
+typedef struct {
+  // viewport size and pos
+  int vpY /*, vpS*/;
+  // player
+  int plY, plX, plXDir;
+
+  // gamover timer
+  int timer;
+  // score
+  int score;
+  
+  // game over flag
+  bool gameover;
+
+  // scene objects
+  objState obj[OBJCNT];
+  objState projctl[PROJCNT];
+} gameState;

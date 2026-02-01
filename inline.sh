@@ -67,8 +67,8 @@ echo >> "$OUT_MD" || exit 1
 echo '```' >> "$OUT_MD" || exit 1
 
 # генерируем telegram markdown2
-printf '```text\ndata:text/html,<canvas%%20id=c></canvas><script>' > "$OUT_MD2" || exit 1
-cat "$BUILD"/main.u-$OP.js >> "$OUT_MD2" || exit 1
+printf '```text\ndata:text/html,<script>' > "$OUT_MD2" || exit 1
+cat "$BUILD"/main.u-$OP.js | sed -e 's/\\n*//' >> "$OUT_MD2" || exit 1
 echo '</script>' >> "$OUT_MD2" || exit 1
 echo '```' >>"$OUT_MD2" || exit 1
 
