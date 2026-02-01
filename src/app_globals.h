@@ -4,6 +4,8 @@
 extern pal256 globalPal;
 // глобалдьное состояние игры
 extern gameState state;
+// рекорд
+extern unsigned int topScore;
 
 // базовые цвета
 extern const col4 colBgGamePlay;
@@ -17,6 +19,8 @@ extern const col4 colProjectile;
 pal256 globalPal;
 // глобалдьное состояние игры
 gameState state;
+// рекорд
+unsigned int topScore = 0;
 
 // базовые цвета
 const col4 colBgGamePlay = {10, 10, 10, 255};

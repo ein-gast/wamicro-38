@@ -11,6 +11,16 @@ let _D = document,
         .getImageData(0, 0, S, _C.width = _C.height = S),
     pixPtr = _E.__heap_base.value, // __heap_base .. __heap_end
     pixBuf = new U(mem = _E.memory.buffer).subarray(pixPtr, pixPtr + BS),
+    // рендер
+    processFrame = (_) => {
+        if (computingFlag) { requestAnimationFrame(processFrame); return; }
+        _E.R(pixPtr)
+        // const ret = _E.render(t, pixPtr)
+        // console.log(ret)
+        image.data.set(pixBuf)
+        _T.putImageData(image, 0, 0)
+        requestAnimationFrame(processFrame);
+    },    
     WH90 = `min(90vw,90vh)`;
 _C.style = `width:${WH90};height:${WH90};image-rendering:pixelated`
 
@@ -22,15 +32,5 @@ _E.I(33)
 // обработка физики
 setInterval((_) => { computingFlag = 1; _E.P(); computingFlag = 0 }, 33 /*1000/60=16*/);
 // ввод
-_C.onmousedown = _D.onkeydown = (_) => _E.K()
-// рендер
-let processFrame = (_) => {
-    if (computingFlag) { requestAnimationFrame(processFrame); }
-    _E.R(pixPtr)
-    // const ret = _E.render(t, pixPtr)
-    // console.log(ret)
-    image.data.set(pixBuf)
-    _T.putImageData(image, 0, 0)
-    requestAnimationFrame(processFrame);
-}
+_D.onmousedown = _D.onkeydown = (_) => _E.K()
 processFrame(0)
