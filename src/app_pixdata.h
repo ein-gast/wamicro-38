@@ -1,5 +1,6 @@
 #include "app_defs.h"
 #include "app_globals.h"
+#include "app_rnd.h"
 
 #define unpakPal(raster)                                                       \
   {                                                                            \
@@ -10,7 +11,7 @@ struct {
   // pal256 pal;
   const int mapSize;
   const byte palMap[3][5];
-  const byte pix[PIXSZ2][PIXSZ2+1];
+  const byte pix[PIXSZ2][PIXSZ2 + 1];
 } pixShp16x16 = {
     // clang-format off
     .mapSize = 3,
@@ -36,7 +37,7 @@ struct {
   // pal256 pal;
   const int mapSize;
   const byte palMap[3][5];
-  const byte pix[PIXSZ2][PIXSZ2+1];
+  const byte pix[PIXSZ2][PIXSZ2 + 1];
 } pixOppo16x16 = {
     // clang-format off
     .mapSize = 3,
@@ -93,4 +94,28 @@ void unpakPalArray(int mapSize, const byte palMap[][5], pal256 pal) {
   }
 }
 
-// распаковывает палитру изображения
+col4 textureWall[CANVASZS * CANVASZS];
+col4 textureSky[CANVASZS * CANVASZS];
+
+void initTexture() {
+  int ofs, shift;
+  col4 col;
+  for (int i = 0; i < CANVASZS * CANVASZS; i++) {
+    shift = iRand(-20, 20);
+    col = colWall;
+    col.r += shift;
+    col.g += shift;
+    col.b += shift;
+    textureWall[i] = col;
+    textureSky[i] = colBgGamePlay;
+  }
+  for (int i = 0; i < CANVASZS; i++) {
+    ofs = iRand(0, CANVASZS * CANVASZS - 1);
+    shift = iRand(-100, 0);
+    col = colStar;
+    col.r += shift;
+    col.g += shift;
+    col.b += shift;
+    textureSky[ofs] = col;
+  }
+}

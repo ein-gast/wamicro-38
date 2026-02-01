@@ -1,10 +1,11 @@
 // Math.ceil(1 + BS / 16 / 1024) = 7
 // U = Uint8Array;
 //console.log(inst.exports)
-let _D = document, 
-    _C = _D.write(`<canvas id=c></canvas>`), 
-    _T, S = 150, BS = S * S * 4, 
+let _D = document,
+    _C = _D.write(`<canvas id=c></canvas>`),
+    _T, S = 150, BS = S * S * 4,
     _E = inst.exports,
+    computingFlag = 0,
     image = (_T = (_C = _D.getElementById(`c`, _E.memory.grow(7 /*Math.ceil(1 + BS / 16 / 1024)*/)))
         .getContext(`2d`))
         .getImageData(0, 0, S, _C.width = _C.height = S),
@@ -14,13 +15,17 @@ let _D = document,
 _C.style = `width:${WH90};height:${WH90};image-rendering:pixelated`
 
 // ---
-_E.I()
+// 60 fps 1000/60=16
+// 45 fps 1000/45=22
+// 30 fps 1000/30=33
+_E.I(33)
 // обработка физики
-setInterval((_) => _E.P(), 16 /*1000/60=16*/);
+setInterval((_) => { computingFlag = 1; _E.P(); computingFlag = 0 }, 33 /*1000/60=16*/);
 // ввод
 _C.onmousedown = _D.onkeydown = (_) => _E.K()
 // рендер
 let processFrame = (_) => {
+    if (computingFlag) { requestAnimationFrame(processFrame); }
     _E.R(pixPtr)
     // const ret = _E.render(t, pixPtr)
     // console.log(ret)

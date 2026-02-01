@@ -8,7 +8,8 @@ void colObjAdd(const objState *obj, int index);
 void colPlayrAdd(int x, int y);
 
 int collWithWall(int x, int y, int w, int h);
-int collWithObj(int x, int y);
+// int collWithObj(int x, int y);
+int collProjWithObj(int x, int y);
 bool collWithPlayer(int x, int y);
 
 #ifdef _COMPILE_COLLISION_
@@ -69,6 +70,25 @@ int collWithWall(int x, int y, int w, int h) {
   return -1;
 }
 
+int collProjWithObj(int x, int y) {
+  const objState *obj;
+  int dx, dy;
+  for (int i = 0; i < colObjHead; i++) {
+    obj = colObj[i].ptr;
+    // пропускаем обекты в состоянии разлёта
+    if (obj->zoom > 0) {
+      continue;
+    }
+    dx = obj->x - x;
+    dy = obj->y - y;
+    if (dx * dx <= PIXSZ2 * PIXSZ2 && dy * dy <= 4) {
+      return colObj[i].index;
+    }
+  }
+  return -1;
+}
+
+/*
 int collWithObj(int x, int y) {
   long unsigned int dist2;
   for (int i = 0; i < colObjHead; i++) {
@@ -84,6 +104,7 @@ int collWithObj(int x, int y) {
   }
   return -1;
 }
+*/
 
 bool collWithPlayer(int x, int y) {
   long unsigned int dist2 =

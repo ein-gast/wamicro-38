@@ -15,7 +15,7 @@
 #define _COMPILE_RND_
 #include "app_rnd.h"
 
-#define init() I()
+#define init(frDelay) I(frDelay)
 #define keyInput() K()
 #define process() P()
 #define renderFrame(input) R(input)
@@ -38,11 +38,6 @@ const char js[] = {
     , '\0' // null terminator
 };
 
-const col4 colBgGamePlay = {10, 10, 10, 255};
-const col4 colBgGameOver = {120, 10, 10, 255};
-const col4 colWall = {100, 100, 100, 255};
-const col4 colProjectile = {0, 255, 0, 255};
-
 #ifdef WITH_LIGHT
 byte sum255(byte a, byte b) {
   int sum = a + b;
@@ -63,7 +58,7 @@ void drawPixel4(byte *canvas, int toX, int toY, const col4 *col) {
 }
 
 /* I() = init() */
-void I() {
+void I(int frDelay) {
   for (int i = 0; i < OBJCNT; i++) {
     state.obj[i].type = OTYPE_NONE;
   }
@@ -71,6 +66,8 @@ void I() {
     state.projctl[i].type = OTYPE_NONE;
   }
 
+  state.frameDelay = frDelay;
+  state.baseSpeed = (state.frameDelay / 16);
   state.plXDir = +1;
   // state.plXDir = 0;
   state.vpY = CANVASZS;
@@ -85,13 +82,14 @@ void I() {
   unpakPal(pixShp16x16);
   // unpakPal(pixRing16x16);
   unpakPal(pixOppo16x16);
+  initTexture();
   level0(state.obj, CANVASZS);
 }
 
 /* K() = keyInput() */
 void K(/*int code1, int code2*/) {
   if (state.gameover && state.timer == 0) {
-    init();
+    init(state.frameDelay);
   }
   state.plXDir = -state.plXDir;
 }
@@ -99,6 +97,7 @@ void K(/*int code1, int code2*/) {
 /* P() = process() */
 void P() {
   static unsigned int procFrame = 0;
+  colReset();
 
   // timer
   if (state.gameover && state.timer > 0) {
@@ -106,9 +105,7 @@ void P() {
   }
 
   // viewport
-  state.vpY++;
-
-  colReset();
+  state.vpY += state.baseSpeed;
 
   // walls
   const walSect *ws;
@@ -136,17 +133,17 @@ void P() {
     }
     switch (state.plXDir) {
     case +1:
-      if (state.plX < CANVASZS - PIXSZ2) {
-        state.plX++;
+      if (state.plX + state.baseSpeed <= CANVASZS - PIXSZ2) {
+        state.plX += state.baseSpeed;
       }
       break;
     case -1:
-      if (state.plX > PIXSZ2) {
-        state.plX--;
+      if (state.plX - state.baseSpeed >= PIXSZ2) {
+        state.plX -= state.baseSpeed;
       }
       break;
     }
-    state.plY++;
+    state.plY += state.baseSpeed;
 
     o_player();
 
@@ -218,16 +215,19 @@ void R(byte *input) {
   }
 #endif
 
-  int i = 0; //, cnt = state.vpS * state.vpS;
-  const col4 *clearColor = &colBgGamePlay;
-  if (state.gameover) {
-    clearColor = &colBgGameOver;
-  }
+  int i; //, cnt = state.vpS * state.vpS;
+  const col4 *clearColor;
 
   // clear - optimize?
   for (int y = 0; y < CANVASZS; y++) {
+    i = ((CANVASZS + state.plY / 2 - y) % CANVASZS) * CANVASZS;
     for (int x = 0; x < CANVASZS; x++) {
-      i = (x + y * CANVASZS) * BPP;
+      if (state.gameover) {
+        clearColor = &colBgGameOver;
+      } else {
+        clearColor = textureSky + i + x;
+      }
+
       drawPixel4(input, x, y, clearColor);
     }
   }
@@ -264,14 +264,8 @@ void R(byte *input) {
     objPtr = state.obj + i;
     switch (objPtr->type) {
     case OTYPE_ERING:
-      // putBitmap(input, objPtr->x, state.vpY - objPtr->y, objPtr->zoom,
-      //           pixOppo16x16.pix);
-
       putBitmap(input, objPtr->x, state.vpY - objPtr->y, objPtr->zoom,
                 pixOppo16x16.pix);
-
-      // drawXOppo(input, CANVASZS, state.obj[i].x, state.vpY -
-      // state.obj[i].y);
       break;
       // case OTYPE_EBOX:
       //   break;
@@ -284,7 +278,8 @@ void R(byte *input) {
   int zoom;
   if (state.gameover) {
     if (state.timer > 0) {
-      zoom = (EXPL_NSTEPS * EXPL_DIVISOR - state.timer * EXPL_NSTEPS);
+      // EXPL_DIVISOR * EXPL_NSTEPS / EXPL_MULTIPLIER * 33 / state.frameDelay;
+      zoom = (EXPL_NSTEPS * EXPL_DIVISOR - state.timer * EXPL_NSTEPS / 2);
       putBitmap(input, px, py, zoom, pixShp16x16.pix);
     }
   } else {
@@ -296,7 +291,7 @@ void R(byte *input) {
     objPtr = state.projctl + i;
     switch (objPtr->type) {
     case OTYPE_BNORM:
-      putProj(input, objPtr->x, state.vpY - objPtr->y);
+      putProj(input, objPtr->x, state.vpY - objPtr->y + PIXSZ2);
       break;
       // case OTYPE_BPOWER:
       //   break;
@@ -349,22 +344,27 @@ void putFontNumber(byte *canvas, int toX, int toY, int number) {
 }
 
 void putProj(byte *canvas, int toVpX, int toVpY) {
-  int x1 = toVpX - PIXSZ2 + 2, y1 = toVpY;
-  int x2 = toVpX + PIXSZ2 - 2, y2 = toVpY;
+  int x1 = toVpX - PIXSZ2 + 2;
+  int x2 = toVpX + PIXSZ2 - 2;
 
-  drawPixel4(canvas, x1, y1, &colProjectile);
-  drawPixel4(canvas, x2, y2, &colProjectile);
+  drawPixel4(canvas, x1, toVpY, &colProjectile);
+  drawPixel4(canvas, x2, toVpY, &colProjectile);
+  drawPixel4(canvas, x1, toVpY-1, &colProjectile);
+  drawPixel4(canvas, x2, toVpY-1, &colProjectile);
 }
 
 void putWall(byte *canvas, const walSect *wal) {
   int y1 = state.vpY - wal->y - wal->yDist;
   int y2 = y1 + wal->yDist;
+
   if ((y1 > CANVASZS && y2 > CANVASZS) || (y1 < 0 && y2 < 0)) {
     return;
   }
 
   int x, y;
+  int texOfs = (wal->y % CANVASZS) * CANVASZS;
   for (y = y1; y < y2; y++) {
+    texOfs = (texOfs + CANVASZS) % (CANVASZS * CANVASZS);
     if (y >= CANVASZS || y < 0) {
       continue;
     }
@@ -372,7 +372,7 @@ void putWall(byte *canvas, const walSect *wal) {
     for (x = 0; x < CANVASZS; x++) {
       if (x < wal->xLeft || x > wal->xRight ||
           (x >= wal->mXLeft && x <= wal->mXRight)) {
-        drawPixel4(canvas, x, y, &colWall);
+        drawPixel4(canvas, x, y, textureWall + texOfs + x);
       }
     }
   }

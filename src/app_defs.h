@@ -102,20 +102,24 @@ typedef struct {
 
 // состояние игры
 typedef struct {
-  // viewport size and pos
+  // задержка между вызовами пересяёта физфки
+  int frameDelay;
+  // базовая скорость движения в рикселях/еадр, если кадров 60/сек
+  int baseSpeed;
+  // позиция вьюпорта в абсолютных координатах
   int vpY /*, vpS*/;
-  // player
+  // позиция игрока в абсолютных координатах
   int plY, plX, plXDir;
 
-  // gamover timer
+  // таймер до окончания gameover-блокировки
   int timer;
-  // score
+  // счёт очков
   int score;
   
-  // game over flag
+  // флак состояния gameover
   bool gameover;
 
-  // scene objects
+  // списки объекттов на сцене
   objState obj[OBJCNT];
   objState projctl[PROJCNT];
 } gameState;

@@ -2,8 +2,12 @@
 #include "app_defs.h"
 #include "app_globals.h"
 
+int gamoverTicksDelay() {
+  return EXPL_DIVISOR * EXPL_NSTEPS / EXPL_MULTIPLIER * 33 / state.frameDelay;
+}
+
 void do_gameover() {
-  state.timer = EXPL_DIVISOR * EXPL_NSTEPS / EXPL_MULTIPLIER;
+  state.timer = 2 * gamoverTicksDelay();
   state.gameover = true;
 }
 
@@ -37,23 +41,24 @@ void o_ering(objState *obj) {
 
 void o_prjctl_norm(objState *projctl) {
   for (int k = 0; k < 3; k++) {
-    (projctl->y)++;
+    projctl->y += state.baseSpeed;
     if (projctl->y > state.vpY) {
       projctl->type = OTYPE_NONE;
       return;
     }
+
+    int col = collProjWithObj(projctl->x, projctl->y);
+    if (col >= 0) {
+      projctl->type = OTYPE_NONE;
+      // state.obj[col].type = OTYPE_NONE;
+      state.obj[col].zoom = EXPL_DIVISOR * 2;
+      state.score += SCORE_ENEMY;
+      return;
+    }
+
   }
 
-  int col = collWithObj(projctl->x, projctl->y);
-  if (col >= 0) {
-    projctl->type = OTYPE_NONE;
-    // state.obj[col].type = OTYPE_NONE;
-    state.obj[col].zoom = EXPL_DIVISOR * 2;
-    state.score += SCORE_ENEMY;
-    return;
-  }
-
-  col = collWithWall(projctl->x, projctl->y, PIXSZ, PIXSZ2 / 2);
+  int col = collWithWall(projctl->x, projctl->y, PIXSZ, PIXSZ2 / 2);
   if (col >= 0) {
     projctl->type = OTYPE_NONE;
     return;

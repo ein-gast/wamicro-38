@@ -2,19 +2,6 @@
 #include "app_rnd.h"
 #include "app_walls.h"
 
-/*
-int place(objState *list, int listSize, objState newObj) {
-  for (int i = 0; i < listSize; i++) {
-    if (list[i].type != OTYPE_NONE) {
-      continue;
-    }
-    list[i] = newObj;
-    return i;
-  }
-  return -1;
-}
-*/
-
 objState *placePtr(objState *list, int listSize) {
   for (int i = 0; i < listSize; i++) {
     if (list[i].type != OTYPE_NONE) {
