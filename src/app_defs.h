@@ -20,7 +20,12 @@ const byte OTYPE_NONE = 0, //
 // сколько байт в пикселе пиксбуфера
 #define BPP (4)
 
-// очки
+// темп разлёта осколков
+#define EXPL_DIVISOR (50)
+#define EXPL_MULTIPLIER (11)
+#define EXPL_NSTEPS (8)
+
+// начисление очков за события
 #define SCORE_DISTANCE 1
 #define SCORE_ENEMY 50
 
@@ -28,6 +33,7 @@ const byte OTYPE_NONE = 0, //
 typedef struct {
   int type;
   int x, y;
+  int zoom;
   // int light_val;
 } objState;
 
@@ -52,11 +58,16 @@ typedef struct {
 typedef col4 pal256[256];
 //typedef byte pal256[256][4];
 
+// стандартная полу-строка растра 
+typedef byte pixMapLine[PIXSZ2 + 1];
+
+#ifdef WITH_LIGHT
 typedef struct {
   int x, y;
   int val;
   byte r, g, b;
 } lightState;
+#endif
 
 /*
                mXRigth
@@ -86,7 +97,6 @@ typedef struct {
 #define OBJCNT (WALCNT * 20) // противники и поверапы
 
 // макросы-хелперы
-
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 

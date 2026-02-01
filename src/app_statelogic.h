@@ -3,7 +3,7 @@
 #include "app_globals.h"
 
 void do_gameover() {
-  state.timer = 60 * 2;
+  state.timer = EXPL_DIVISOR * EXPL_NSTEPS / EXPL_MULTIPLIER;
   state.gameover = true;
 }
 
@@ -22,50 +22,40 @@ void o_player() {
   }
 }
 
-void o_ering(int i) {
-  if (state.obj[i].y < state.vpY - CANVASZS - PIXSZ) {
-    state.obj[i].type = OTYPE_NONE;
+void o_ering(objState *obj) {
+  if (obj->zoom > 1) {
+    if ((obj->zoom += EXPL_MULTIPLIER) > EXPL_DIVISOR * EXPL_NSTEPS) {
+      obj->type = OTYPE_NONE;
+    }
+    return;
+  }
+  if (obj->y < state.vpY - CANVASZS - PIXSZ) {
+    obj->type = OTYPE_NONE;
     return;
   }
 }
 
-// void o_ebox(int i) {
-//   if (state.obj[i].y < state.vpY - CANVASZS - PIXSZ) {
-//     state.obj[i].type = OTYPE_NONE;
-//     return;
-//   }
-// }
-
-void o_prjctl_norm(int i) {
+void o_prjctl_norm(objState *projctl) {
   for (int k = 0; k < 3; k++) {
-    state.projctl[i].y++;
-    if (state.projctl[i].y > state.vpY) {
-      state.projctl[i].type = OTYPE_NONE;
+    (projctl->y)++;
+    if (projctl->y > state.vpY) {
+      projctl->type = OTYPE_NONE;
       return;
     }
   }
 
-  int col = collWithObj(state.projctl[i].x, state.projctl[i].y);
+  int col = collWithObj(projctl->x, projctl->y);
   if (col >= 0) {
-    state.obj[col].type = OTYPE_NONE;
-    state.projctl[i].type = OTYPE_NONE;
+    projctl->type = OTYPE_NONE;
+    // state.obj[col].type = OTYPE_NONE;
+    state.obj[col].zoom = EXPL_DIVISOR * 2;
     state.score += SCORE_ENEMY;
     return;
   }
 
-  col = collWithWall(state.projctl[i].x, state.projctl[i].y, PIXSZ, PIXSZ2 / 2);
+  col = collWithWall(projctl->x, projctl->y, PIXSZ, PIXSZ2 / 2);
   if (col >= 0) {
-    state.projctl[i].type = OTYPE_NONE;
+    projctl->type = OTYPE_NONE;
     return;
   }
 }
-
-// void o_prjctl_pwr(int i) {
-//   for (int k = 0; k < 3; k++) {
-//     state.projctl[i].y++;
-//     if (state.projctl[i].y > state.vpY) {
-//         state.projctl[i].type = OTYPE_NONE;
-//         return;
-//     }
-//   }
-// }

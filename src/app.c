@@ -20,8 +20,8 @@
 #define process() P()
 #define renderFrame(input) R(input)
 
-void putBitmap(byte *canvas, int toX, int toY, bool vMirror,
-               const byte pix[][PIXSZ2 + 1]);
+void putBitmap(byte *canvas, int toX, int toY, int zoom,
+               const byte pix[PIXSZ2][PIXSZ2 + 1]);
 void putProj(byte *canvas, int toX, int toY);
 void putWall(byte *canvas, const walSect *wal);
 void putFontNumber(byte *canvas, int toX, int toY, int number);
@@ -51,8 +51,8 @@ byte sum255(byte a, byte b) {
 #endif
 
 void drawPixel4(byte *canvas, int toX, int toY, const col4 *col) {
-  if (col->v[3] != 0 && toX > 0 && toY > 0 && toX <= CANVASZS &&
-      toY <= CANVASZS) {
+  if (col->v[3] != 0 && toX >= 0 && toY >= 0 && toX < CANVASZS &&
+      toY < CANVASZS) {
     int ofs = toX + toY * CANVASZS;
     ofs *= BPP;
     canvas[ofs + 0] = col->v[0];
@@ -163,7 +163,7 @@ void P() {
   // objects
   for (int i = 0; i < OBJCNT; i++) {
     if (state.obj[i].type == OTYPE_ERING) {
-      o_ering(i);
+      o_ering(state.obj + i);
       colObjAdd(state.obj + i, i);
     }
     /*
@@ -183,7 +183,7 @@ void P() {
   // projectiles
   for (int i = 0; i < PROJCNT; i++) {
     if (state.projctl[i].type == OTYPE_BNORM) {
-      o_prjctl_norm(i);
+      o_prjctl_norm(state.projctl + i);
     }
     /*
     switch (state.projctl[i].type) {
@@ -258,20 +258,18 @@ void R(byte *input) {
   }
 #endif
 
-  // player
-  if (!state.gameover) {
-    int px = state.plX;
-    int py = state.vpY - state.plY;
-    putBitmap(input, px, py, true, pixShp16x16.pix);
-    // drawXPlayer(input, CANVASZS, px, py);
-  }
-
-  // objectsstate.vpS / 2, state.vpS / 2
+  // objects
+  objState *objPtr;
   for (int i = 0; i < OBJCNT; i++) {
-    switch (state.obj[i].type) {
+    objPtr = state.obj + i;
+    switch (objPtr->type) {
     case OTYPE_ERING:
-      putBitmap(input, state.obj[i].x, state.vpY - state.obj[i].y, true,
+      // putBitmap(input, objPtr->x, state.vpY - objPtr->y, objPtr->zoom,
+      //           pixOppo16x16.pix);
+
+      putBitmap(input, objPtr->x, state.vpY - objPtr->y, objPtr->zoom,
                 pixOppo16x16.pix);
+
       // drawXOppo(input, CANVASZS, state.obj[i].x, state.vpY -
       // state.obj[i].y);
       break;
@@ -279,10 +277,26 @@ void R(byte *input) {
       //   break;
     }
   }
+
+  // player
+  int px = state.plX;
+  int py = state.vpY - state.plY;
+  int zoom;
+  if (state.gameover) {
+    if (state.timer > 0) {
+      zoom = (EXPL_NSTEPS * EXPL_DIVISOR - state.timer * EXPL_NSTEPS);
+      putBitmap(input, px, py, zoom, pixShp16x16.pix);
+    }
+  } else {
+    putBitmap(input, px, py, 1, pixShp16x16.pix);
+  }
+
+  // projectiles
   for (int i = 0; i < PROJCNT; i++) {
-    switch (state.projctl[i].type) {
+    objPtr = state.projctl + i;
+    switch (objPtr->type) {
     case OTYPE_BNORM:
-      putProj(input, state.projctl[i].x, state.vpY - state.projctl[i].y);
+      putProj(input, objPtr->x, state.vpY - objPtr->y);
       break;
       // case OTYPE_BPOWER:
       //   break;
@@ -294,24 +308,24 @@ void R(byte *input) {
   frame++;
 }
 
-void putBitmap(byte *canvas, int toX, int toY, bool vMirror,
-               const byte pix[][PIXSZ2 + 1]) {
+void putBitmap(byte *canvas, int toX, int toY, int zoom,
+               const byte pix[PIXSZ2][PIXSZ2 + 1]) {
   int fx, fy;
-  col4 *col;
-  toX -= PIXSZ2;
-  toY -= PIXSZ2;
+  const col4 *col;
+  // const pixMapLine *line;
+  zoom = zoom < EXPL_DIVISOR ? 1 : zoom / EXPL_DIVISOR;
+  toX -= PIXSZ2 * zoom;
+  toY -= PIXSZ2 * zoom;
   for (int py = 0; py < PIXSZ; py++) {
-    if (vMirror) {
-      fy = py < PIXSZ2 ? py : PIXSZ - py - 1;
-    } else {
-      fy = py;
-    }
+    fy = py < PIXSZ2 ? py : PIXSZ - py - 1;
+    // line = pix + fy;
     for (int px = 0; px < PIXSZ; px++) {
       fx = px < PIXSZ2 ? px : PIXSZ - px - 1;
       col = globalPal + pix[fy][fx];
-      drawPixel4(canvas, toX + px, toY + py, col);
+      drawPixel4(canvas, toX + px * zoom, toY + py * zoom, col);
     }
   }
+  // putFontNumber(canvas, toX, toY - 5, zoom);
 }
 
 void putFontNumber(byte *canvas, int toX, int toY, int number) {

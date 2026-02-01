@@ -72,6 +72,10 @@ int collWithWall(int x, int y, int w, int h) {
 int collWithObj(int x, int y) {
   long unsigned int dist2;
   for (int i = 0; i < colObjHead; i++) {
+    // пропускаем обекты в состоянии разлёта
+    if (colObj[i].ptr->zoom > 0) {
+      continue;
+    }
     dist2 = (x - colObj[i].ptr->x) * (x - colObj[i].ptr->x) +
             (y - colObj[i].ptr->y) * (y - colObj[i].ptr->y);
     if (dist2 < PIXSZ2 * PIXSZ2) {

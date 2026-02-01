@@ -20,6 +20,7 @@ objState *placePtr(objState *list, int listSize) {
     if (list[i].type != OTYPE_NONE) {
       continue;
     }
+    list[i].zoom = 0;
     return list + i;
   }
   return nullptr;

@@ -10,7 +10,7 @@ struct {
   // pal256 pal;
   const int mapSize;
   const byte palMap[3][5];
-  const byte pix[PIXSZ2][PIXSZ2 + 1];
+  const byte pix[PIXSZ2][PIXSZ2+1];
 } pixShp16x16 = {
     // clang-format off
     .mapSize = 3,
@@ -36,7 +36,7 @@ struct {
   // pal256 pal;
   const int mapSize;
   const byte palMap[3][5];
-  const byte pix[PIXSZ2][PIXSZ2 + 1];
+  const byte pix[PIXSZ2][PIXSZ2+1];
 } pixOppo16x16 = {
     // clang-format off
     .mapSize = 3,
