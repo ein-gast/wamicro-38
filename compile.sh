@@ -4,14 +4,17 @@
 
 if ! command -v "$CLANG" >/dev/null; then
     echo "нужна команда $CLANG, установите clang"
+    exit 1
 fi
 
 if ! command -v "$WLDD" >/dev/null; then
     echo "нужна команда $WLDD, установите lld"
+    exit 1
 fi
 
 if ! command -v wasm-opt >/dev/null; then
     echo "нужна команда wasm-opt, установите binaryen"
+    exit 1
 fi
 
 if test "$1" = "APP_MIN"; then

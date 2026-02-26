@@ -53,7 +53,7 @@ rm "$BUILD"/main0.js
 # минимизируем js:
 npx uglifyjs --toplevel --keep-fargs --rename "$BUILD"/main-$OP.js >"$BUILD"/main.u-$OP.js || exit 1
 # uglifyjs зачем-то основляет \r\n в конце
-truncate -s -2 '${/^[[:blank:]]*$/d}' "$BUILD"/main.u-$OP.js
+truncate -s -2 "$BUILD"/main.u-$OP.js
 npx regpack --reassignVars 0 "$BUILD"/main.u-$OP.js | sed -e 's/^stats:.*$//g' >"$BUILD"/main.z-$OP.js || exit 1
 
 cp "$BUILD"/main.z-$OP.js "$BUILD"/main.z.js
