@@ -42,7 +42,7 @@ void o_ering(objState *obj) {
 void o_prjctl_norm(objState *projctl) {
   for (int k = 0; k < 3; k++) {
     projctl->y += state.baseSpeed;
-    if (projctl->y > state.vpY) {
+    if (projctl->y > state.vpY + PIXSZ) {
       projctl->type = OTYPE_NONE;
       return;
     }
@@ -55,7 +55,6 @@ void o_prjctl_norm(objState *projctl) {
       state.score += SCORE_ENEMY;
       return;
     }
-
   }
 
   int col = collWithWall(projctl->x, projctl->y, PIXSZ, PIXSZ2 / 2);

@@ -1,5 +1,5 @@
 If:
   PathMatch: [.*\.h, .*\.c]
 CompileFlags:
-  Add: [ --std=c23, --language=c ]
+  Add: [ --std=c23, --language=c, -D WITH_LIGHT ]
   Compiler: clang

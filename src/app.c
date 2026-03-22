@@ -3,7 +3,6 @@
 #ifdef WITH_LIGHT
 #include "app_light.h"
 #endif
-// #include "app_gfx.h
 #include "app_pixdata.h"
 #include "app_statelogic.h"
 #define _COMPILE_GLOBALS_
@@ -147,6 +146,7 @@ void P() {
 
     o_player();
 
+    // autoshoot
     if (procFrame % (20 * 16 / state.frameDelay) == 0) {
       objState *s;
       if (nullptr != (s = placePtr(state.projctl, PROJCNT))) {
@@ -204,20 +204,12 @@ void P() {
 }
 
 /* R(input) = renderFrame(input) */
-void R(byte *input) {
+void R(byte *canvas) {
   static unsigned int frame = 0;
 
 #ifdef WITH_LIGHT
   // setup lights
   litReset();
-  for (int i = 0; i < PROJCNT; i++) {
-    switch (state.projctl[i].type) {
-    case OTYPE_BNORM:
-      litAdd(state.projctl[i].x - PIXSZ2 + 2, state.projctl[i].y);
-      litAdd(state.projctl[i].x + PIXSZ2 - 2, state.projctl[i].y);
-      break;
-    }
-  }
 #endif
 
   int i; //, cnt = state.vpS * state.vpS;
@@ -233,7 +225,7 @@ void R(byte *input) {
         clearColor = textureSky + i + x;
       }
 
-      drawPixel4(input, x, y, clearColor);
+      drawPixel4(canvas, x, y, clearColor);
     }
   }
 
@@ -246,22 +238,9 @@ void R(byte *input) {
       break;
     }
     sum++;
-    putWall(input, ws);
+    putWall(canvas, ws);
     ws = walNext(ws);
   }
-
-#ifdef WITH_LIGHT
-  // apply light+shade
-  for (int y = 0; y < state.vpS; y++) {
-    for (int x = 0; x < state.vpS; x++) {
-      i = (x + y * state.vpS) * BPP;
-      clearColor = litVal(x, state.vpY - y); // var reuse
-      input[i + 0] = sum255(clearColor.r, input[i + 0]);
-      input[i + 1] = sum255(clearColor.g, input[i + 1]);
-      input[i + 2] = sum255(clearColor.b, input[i + 2]);
-    }
-  }
-#endif
 
   // objects
   objState *objPtr;
@@ -269,8 +248,16 @@ void R(byte *input) {
     objPtr = state.obj + i;
     switch (objPtr->type) {
     case OTYPE_ERING:
-      putBitmap(input, objPtr->x, state.vpY - objPtr->y, objPtr->zoom,
+      putBitmap(canvas, objPtr->x, state.vpY - objPtr->y, objPtr->zoom,
                 pixOppo16x16.pix);
+
+#ifdef WITH_LIGHT
+      if (objPtr->zoom > 0) {
+        litAdd(objPtr->x, objPtr->y,
+               (EXPL_NSTEPS * EXPL_DIVISOR - objPtr->zoom * 5 / 2) * 4,
+               colExplosion);
+      }
+#endif
       break;
       // case OTYPE_EBOX:
       //   break;
@@ -280,15 +267,20 @@ void R(byte *input) {
   // player
   int px = state.plX;
   int py = state.vpY - state.plY;
-  int zoom;
+  int zoom, ok;
   if (state.gameover) {
     if (state.timer > 0) {
       // EXPL_DIVISOR * EXPL_NSTEPS / EXPL_MULTIPLIER * 33 / state.frameDelay;
       zoom = (EXPL_NSTEPS * EXPL_DIVISOR - state.timer * EXPL_NSTEPS / 2);
-      putBitmap(input, px, py, zoom, pixShp16x16.pix);
+      putBitmap(canvas, px, py + PIXSZ, zoom, pixShp16x16.pix);
+      // putBitmap(canvas, px, state.vpY - CANVASZS, zoom, pixShp16x16.pix);
+#ifdef WITH_LIGHT
+      ok = litAdd(px, state.vpY - CANVASZS,
+                  (EXPL_NSTEPS * EXPL_DIVISOR - zoom * 3) * 4, colExplosion);
+#endif
     }
   } else {
-    putBitmap(input, px, py, 1, pixShp16x16.pix);
+    putBitmap(canvas, px, py, 1, pixShp16x16.pix);
   }
 
   // projectiles
@@ -296,15 +288,33 @@ void R(byte *input) {
     objPtr = state.projctl + i;
     switch (objPtr->type) {
     case OTYPE_BNORM:
-      putProj(input, objPtr->x, state.vpY - objPtr->y + PIXSZ2);
+      putProj(canvas, objPtr->x, state.vpY - objPtr->y + PIXSZ2);
+#ifdef WITH_LIGHT
+      litAdd(objPtr->x - PIXSZ2 + 2, objPtr->y - PIXSZ2, 1, colProjectile);
+      litAdd(objPtr->x + PIXSZ2 - 2, objPtr->y - PIXSZ2, 1, colProjectile);
+#endif
       break;
       // case OTYPE_BPOWER:
       //   break;
     }
   }
 
-  putFontNumber(input, CANVASZS - 10, 5, topScore);
-  putFontNumber(input, CANVASZS - 10, 11, state.score);
+#ifdef WITH_LIGHT
+  col4 litColor;
+  // apply light+shade
+  for (int y = 0; y < CANVASZS; y++) {
+    for (int x = 0; x < CANVASZS; x++) {
+      i = (x + y * CANVASZS) * BPP;
+      litColor = litVal(x, state.vpY - y);
+      canvas[i + 0] = sum255(litColor.r, canvas[i + 0]);
+      canvas[i + 1] = sum255(litColor.g, canvas[i + 1]);
+      canvas[i + 2] = sum255(litColor.b, canvas[i + 2]);
+    }
+  }
+#endif
+
+  putFontNumber(canvas, CANVASZS - 10, 5, topScore);
+  putFontNumber(canvas, CANVASZS - 10, 11, state.score);
 
   frame++;
 }
