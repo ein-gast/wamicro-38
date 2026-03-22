@@ -18,14 +18,14 @@ if ! command -v wasm-opt >/dev/null; then
 fi
 
 if test "$1" = "APP_MIN"; then
-CFLAGS="-D APP_MIN_JS"
-rm "$SRC/boot.min.js" 2> /dev/null
-npx uglifyjs --toplevel --rename "$SRC/boot.js" > "$SRC/boot.min.js" || exit 1
-echo "$1"
+    CFLAGS="-D APP_MIN_JS"
+    rm "$SRC/boot.min.js" 2> /dev/null
+    npx uglifyjs --toplevel --rename "$SRC/boot.js" > "$SRC/boot.min.js" || exit 1
+    echo "$1"
 fi
 
 "$CLANG" --target="$WARCH" --language=c --std=c23 -Oz --no-standard-libraries \
-    $CFLAGS \
+    $CFLAGS $DFLAGS \
     -Wl,--export=I -Wl,--export=K -Wl,--export=P -Wl,--export=R -Wl,--export=__heap_base \
     -Wl,--export=js \
     -Wl,--import-undefined \

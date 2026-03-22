@@ -34,7 +34,6 @@ typedef struct {
   int type;
   int x, y;
   int zoom;
-  // int light_val;
 } objState;
 
 typedef struct {
@@ -56,16 +55,16 @@ typedef struct {
 } col4;
 
 typedef col4 pal256[256];
-//typedef byte pal256[256][4];
+// typedef byte pal256[256][4];
 
-// стандартная полу-строка растра 
+// стандартная полу-строка растра
 typedef byte pixMapLine[PIXSZ2 + 1];
 
 #ifdef WITH_LIGHT
 typedef struct {
   int x, y;
   int val;
-  byte r, g, b;
+  col4 c;
 } lightState;
 #endif
 
@@ -91,10 +90,10 @@ typedef struct {
 } walSect;
 
 // размеры пулов объектов
-#define PROJCNT (20)         // "выстрелы"
-#define LITCNT (PROJCNT * 2) // источники света
-#define WALCNT (20)          // секции стен
-#define OBJCNT (WALCNT * 20) // противники и поверапы
+#define PROJCNT (20)             // "выстрелы"
+#define LITCNT (PROJCNT * 2 + 6) // источники света
+#define WALCNT (20)              // секции стен
+#define OBJCNT (WALCNT * 20)     // противники и поверапы
 
 // макросы-хелперы
 #define min(a, b) ((a) < (b) ? (a) : (b))
@@ -104,7 +103,7 @@ typedef struct {
 typedef struct {
   // задержка между вызовами пересяёта физфки
   int frameDelay;
-  // базовая скорость движения в рикселях/еадр, если кадров 60/сек
+  // базовая скорость движения в рикселях/кадр, если кадров 60/сек
   int baseSpeed;
   // позиция вьюпорта в абсолютных координатах
   int vpY /*, vpS*/;
@@ -115,7 +114,7 @@ typedef struct {
   int timer;
   // счёт очков
   int score;
-  
+
   // флак состояния gameover
   bool gameover;
 

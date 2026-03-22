@@ -28,5 +28,7 @@ const col4 colBgGameOver = {120, 10, 10, 255};
 const col4 colWall = {100, 100, 100, 255};
 const col4 colStar = {220, 220, 220, 255};
 const col4 colProjectile = {0, 255, 0, 255};
+//const col4 colExplosion = {200, 200, 90, 255};
+const col4 colExplosion = {250, 190, 90, 255}; //red
 
 #endif
